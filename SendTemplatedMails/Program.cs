@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using SendGrid;
 using SendGrid.Helpers.Mail;
+using SendTemplatedMails.Models;
 using SendTemplatedMails.Options;
 using SendTemplatedMails.Services;
 
@@ -30,10 +31,14 @@ var client = new SendGridClient(options.ApiKey);
 var inputs = CsvService.GetInput("input.csv");
 
 // Send emails
-var msg = MailHelper.CreateSingleTemplateEmailToMultipleRecipients(
-    new EmailAddress(options.From),
-    inputs.Select(i => new EmailAddress(i.Email)).ToList(),
-    options.TemplateId, null);
+var msg = MailHelper.CreateMultipleTemplateEmailsToMultipleRecipients(
+    from: new EmailAddress(options.From),
+    tos: inputs.Select(i => new EmailAddress(i.Email)).ToList(),
+    templateId: options.TemplateId, 
+    dynamicTemplateData: inputs.Select(i => new DynamicTemplateData
+    {
+        SubscribeUrl = new Uri($"{options.FunctionUrl}?code={options.FunctionAppKey}&email={i.Email}&firstname={i.Firstname}&lastname={i.Lastname}&type={options.TypeValue}").ToString()
+    } as object).ToList());
 
 Console.WriteLine($"Sending {inputs.Count} emails ...");
 var response = await client.SendEmailAsync(msg);
