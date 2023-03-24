@@ -28,7 +28,8 @@ var options = serviceProvider.GetService<IOptions<SendGridOptions>>()?.Value ?? 
 var client = new SendGridClient(options.ApiKey);
 
 // Get emails
-var inputs = CsvService.GetInput("input.csv");
+var inputs = CsvService.GetInput("input.csv")
+    .DistinctBy(i => i.Email).ToList();
 
 // Send emails
 var msg = MailHelper.CreateMultipleTemplateEmailsToMultipleRecipients(
