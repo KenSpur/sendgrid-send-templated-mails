@@ -1,19 +1,20 @@
 ﻿using CsvHelper;
+using CsvHelper.Configuration;
 using SendTemplatedMails.Models;
 using System.Globalization;
 
-namespace SendTemplatedMails.Services
+namespace SendTemplatedMails.Services;
+
+internal class CsvService
 {
-    internal class CsvService
+    public static IReadOnlyCollection<Input> GetInput(string file)
     {
-        public static IReadOnlyCollection<Input> GetInput(string file)
-        {
-            using var reader = new StreamReader(file);
-            using var csv = new CsvReader(reader, CultureInfo.InvariantCulture);
+        using var reader = new StreamReader(file);
+        var config = new CsvConfiguration(CultureInfo.InvariantCulture) { Delimiter = ";" };
+        using var csv = new CsvReader(reader, config);
+        
+        var inputs = csv.GetRecords<Input>();
             
-            var inputs = csv.GetRecords<Input>();
-                
-            return inputs.ToList();
-        }
+        return inputs.ToList();
     }
 }
